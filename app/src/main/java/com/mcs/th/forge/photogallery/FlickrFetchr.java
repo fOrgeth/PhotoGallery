@@ -3,6 +3,9 @@ package com.mcs.th.forge.photogallery;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,6 +64,7 @@ public class FlickrFetchr {
                     .toString();
             String jsonString = getUrlString(url);
             Log.d(TAG, "Received JSON: " + jsonString);
+
             JSONObject jsonBody = new JSONObject(jsonString);
             parseItems(items, jsonBody);
         } catch (IOException ioe) {
@@ -81,10 +85,13 @@ public class FlickrFetchr {
             if (!photoJsonObject.has("url_s")) {
                 continue;
             }
-            GalleryItem item = new GalleryItem();
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            GalleryItem item = gson.fromJson(photoJsonObject.toString(),GalleryItem.class);
+            /*GalleryItem item = new GalleryItem();
             item.setId(photoJsonObject.getString("id"));
             item.setCaption(photoJsonObject.getString("title"));
-            item.setUrl(photoJsonObject.getString("url_s"));
+            item.setUrl(photoJsonObject.getString("url_s"));*/
             items.add(item);
         }
     }
