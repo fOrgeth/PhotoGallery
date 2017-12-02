@@ -1,16 +1,20 @@
 package com.mcs.th.forge.photogallery;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class GalleryItem {
 
     @SerializedName("title")
+    @Expose
     private String mCaption;
 
     @SerializedName("id")
+    @Expose
     private String mId;
 
     @SerializedName("url_s")
+    @Expose
     private String mUrl;
 
     public String getCaption() {

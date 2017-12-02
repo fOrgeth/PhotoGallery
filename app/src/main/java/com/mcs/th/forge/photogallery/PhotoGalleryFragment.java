@@ -6,9 +6,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -36,6 +38,18 @@ public class PhotoGalleryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mRecyclerView = v.findViewById(R.id.recycler_view);
+        mRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                float columnWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                        140, getActivity().getResources().getDisplayMetrics());
+                int width = mRecyclerView.getWidth();
+                int columnCount = Math.round(width/columnWidth);
+                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),columnCount));
+                mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+            }
+        });
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         setupAdapter();
         return v;

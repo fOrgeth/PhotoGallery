@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ public class FlickrFetchr {
 
     private static final String TAG = "FlickFetchr";
     private static final String API_KEY = "e8a8277280bea546406c2151a8d8c4c9";
+
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -66,7 +69,8 @@ public class FlickrFetchr {
             Log.d(TAG, "Received JSON: " + jsonString);
 
             JSONObject jsonBody = new JSONObject(jsonString);
-            parseItems(items, jsonBody);
+            items = parseItems(items, jsonBody);
+
         } catch (IOException ioe) {
             Log.e(TAG, "Failed to tech items", ioe);
         } catch (JSONException je) {
@@ -75,8 +79,8 @@ public class FlickrFetchr {
         return items;
     }
 
-    private void parseItems(List<GalleryItem> items, JSONObject jsonBody)
-            throws IOException, JSONException {
+    /*private void parseItems(List<GalleryItem> items, JSONObject jsonBody)
+        throws IOException, JSONException{
         JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
         JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
 
@@ -85,14 +89,23 @@ public class FlickrFetchr {
             if (!photoJsonObject.has("url_s")) {
                 continue;
             }
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-            GalleryItem item = gson.fromJson(photoJsonObject.toString(),GalleryItem.class);
-            /*GalleryItem item = new GalleryItem();
+            GalleryItem item = new GalleryItem();
             item.setId(photoJsonObject.getString("id"));
             item.setCaption(photoJsonObject.getString("title"));
-            item.setUrl(photoJsonObject.getString("url_s"));*/
+            item.setUrl(photoJsonObject.getString("url_s"));
             items.add(item);
         }
+    }*/
+
+    private List<GalleryItem> parseItems(List<GalleryItem> items, JSONObject jsonBody)
+            throws IOException, JSONException {
+        Type galleryListType = new TypeToken<List<GalleryItem>>() {
+        }.getType();
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+        JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
+        JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
+        return gson.fromJson(photoJsonArray.toString(), galleryListType);
     }
 }
