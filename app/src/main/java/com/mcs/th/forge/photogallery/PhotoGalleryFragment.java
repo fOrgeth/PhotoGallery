@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +46,23 @@ public class PhotoGalleryFragment extends Fragment {
                 float columnWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                         140, getActivity().getResources().getDisplayMetrics());
                 int width = mRecyclerView.getWidth();
-                int columnCount = Math.round(width/columnWidth);
-                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),columnCount));
+                int columnCount = Math.round(width / columnWidth);
+                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), columnCount));
                 mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
             }
         });
         setupAdapter();
         return v;
+    }
+
+    private void updateSubtitle() {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        try {
+            activity.getSupportActionBar().setSubtitle("text");
+        } catch (NullPointerException npe) {
+            Toast.makeText(getActivity(), "wtf!", Toast.LENGTH_SHORT);
+        }
     }
 
     private void setupAdapter() {
