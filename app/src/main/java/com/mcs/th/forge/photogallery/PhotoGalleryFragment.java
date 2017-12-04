@@ -50,7 +50,6 @@ public class PhotoGalleryFragment extends Fragment {
 
             }
         });
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         setupAdapter();
         return v;
     }
