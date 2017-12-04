@@ -4,7 +4,7 @@ import android.app.Application;
 import android.os.StrictMode;
 
 public class App extends Application {
-    private static final boolean DEVELOPER_MODE = true;
+    private static final boolean DEVELOPER_MODE = false;
 
     @Override
     public void onCreate() {
