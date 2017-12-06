@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,9 @@ public class PhotoGalleryFragment extends Fragment {
     private static final String TAG = "PhotoGalleryFragment";
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
+    private GridLayoutManager mGridLayoutManager;
+    private boolean mLoading = true;
+    private int mCurrentPage = 1;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -46,12 +50,32 @@ public class PhotoGalleryFragment extends Fragment {
                 float columnWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                         140, getActivity().getResources().getDisplayMetrics());
                 int width = mRecyclerView.getWidth();
-                int columnCount = Math.round(width / columnWidth);
-                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), columnCount));
+                int mColumnCount = Math.round(width / columnWidth);
+                mGridLayoutManager = new GridLayoutManager(getActivity(), mColumnCount);
+                mRecyclerView.setLayoutManager(mGridLayoutManager);
                 mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
             }
         });
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            private int lastVisibleItems, visibleItemCount, totalItemCount;
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                visibleItemCount = mGridLayoutManager.getChildCount();
+                totalItemCount = mGridLayoutManager.getItemCount();
+                lastVisibleItems = mGridLayoutManager.findLastVisibleItemPosition();
+                if ((dy > 0 || dy < 0) && !mLoading && (lastVisibleItems >= mItems.size() - 1)) {
+                    Log.d(TAG, "Fetching more items");
+                    mLoading = true;
+                    mCurrentPage++;
+                    new FetchItemTask().execute();
+                    mRecyclerView.getAdapter().notifyDataSetChanged();
+                }
+            }
+        });
+        updateSubtitle();
         setupAdapter();
         return v;
     }
@@ -75,12 +99,13 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
-            return new FlickrFetchr().fetchItems();
+            return new FlickrFetchr().fetchItems(mCurrentPage);
         }
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItems = galleryItems;
+            mItems.addAll(galleryItems);
+            mLoading = false;
             setupAdapter();
         }
     }

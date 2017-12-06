@@ -52,7 +52,7 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems() {
+    public List<GalleryItem> fetchItems(int page) {
 
         List<GalleryItem> items = new ArrayList<>();
         try {
@@ -62,14 +62,13 @@ public class FlickrFetchr {
                     .appendQueryParameter("api_key", API_KEY)
                     .appendQueryParameter("format", "json")
                     .appendQueryParameter("nojsoncallback", "1")
+                    .appendQueryParameter("page", String.valueOf(page))
                     .appendQueryParameter("extras", "url_s")
                     .build()
                     .toString();
             String jsonString = getUrlString(url);
             Log.d(TAG, "Received JSON: " + jsonString);
-
-            JSONObject jsonBody = new JSONObject(jsonString);
-            items = parseItems(jsonBody);
+            items = parseItems(jsonString);
 
         } catch (IOException ioe) {
             Log.e(TAG, "Failed to tech items", ioe);
@@ -79,13 +78,14 @@ public class FlickrFetchr {
         return items;
     }
 
-    private List<GalleryItem> parseItems(JSONObject jsonBody)
+    private List<GalleryItem> parseItems(String jsonString)
             throws IOException, JSONException {
         Type galleryListType = new TypeToken<List<GalleryItem>>() {
         }.getType();
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();
+        JSONObject jsonBody = new JSONObject(jsonString);
         JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
         JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
         return gson.fromJson(photoJsonArray.toString(), galleryListType);
