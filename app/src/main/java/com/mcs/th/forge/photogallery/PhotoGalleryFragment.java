@@ -34,6 +34,8 @@ public class PhotoGalleryFragment extends Fragment {
 
     private int mLastVisibleItem, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
+    private Handler mHandler;
+
     private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
     public static PhotoGalleryFragment newInstance() {
@@ -57,6 +59,7 @@ public class PhotoGalleryFragment extends Fragment {
                     }
                 }
         );
+        mHandler = new Handler();
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
@@ -94,7 +97,15 @@ public class PhotoGalleryFragment extends Fragment {
                     mLoading = true;
                     mCurrentPage++;
                     new FetchItemTask().execute();
-                    mRecyclerView.getAdapter().notifyDataSetChanged();
+                    /*mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mRecyclerView.getAdapter().notifyItemInserted(mItems.size());
+                        }
+                    });*/
+
+//                    mRecyclerView.getAdapter().notifyDataSetChanged();
+
                 }
             }
         });

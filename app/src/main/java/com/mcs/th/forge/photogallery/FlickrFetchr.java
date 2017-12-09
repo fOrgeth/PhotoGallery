@@ -56,6 +56,7 @@ public class FlickrFetchr {
     public List<GalleryItem> fetchItems(int page) {
 
         List<GalleryItem> items = new ArrayList<>();
+        Log.d(TAG, "Loading page "+page);
         try {
             String url = Uri.parse("https://api.flickr.com/services/rest/")
                     .buildUpon()
@@ -68,7 +69,7 @@ public class FlickrFetchr {
                     .build()
                     .toString();
             String jsonString = getUrlString(url);
-            Log.d(TAG, "Received JSON: " + jsonString);
+//            Log.d(TAG, "Received JSON: " + jsonString);
             items = parseItems(jsonString);
 
         } catch (IOException ioe) {
@@ -89,6 +90,12 @@ public class FlickrFetchr {
         JSONObject jsonBody = new JSONObject(jsonString);
         JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
         JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
+        for(int i =0;i<photoJsonArray.length();i++){
+            JSONObject obj = photoJsonArray.getJSONObject(i);
+            if(!obj.has("url_s")){
+                Log.d(TAG,"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ALARM!!!!!");
+            }
+        }
         return gson.fromJson(photoJsonArray.toString(), galleryListType);
     }
 }

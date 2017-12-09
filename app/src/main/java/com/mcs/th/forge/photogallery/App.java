@@ -8,6 +8,7 @@ public class App extends Application {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         if (DEVELOPER_MODE) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -22,6 +23,5 @@ public class App extends Application {
                     .penaltyDeath()
                     .build());
         }
-        super.onCreate();
     }
 }
