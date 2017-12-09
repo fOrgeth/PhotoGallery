@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -26,6 +27,11 @@ public class PhotoGalleryFragment extends Fragment {
     private static final String TAG = "PhotoGalleryFragment";
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
+    private GridLayoutManager mGridLayoutManager;
+    private boolean mLoading = true;
+    private int mCurrentPage = 1;
+
+    private int mLastVisibleItem, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
     private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
@@ -66,15 +72,43 @@ public class PhotoGalleryFragment extends Fragment {
                 float columnWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                         140, getActivity().getResources().getDisplayMetrics());
                 int width = mRecyclerView.getWidth();
-                int columnCount = Math.round(width / columnWidth);
-                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), columnCount));
+                int mColumnCount = Math.round(width / columnWidth);
+                mGridLayoutManager = new GridLayoutManager(getActivity(), mColumnCount);
+                mRecyclerView.setLayoutManager(mGridLayoutManager);
                 mRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
             }
         });
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                mVisibleItemCount = mGridLayoutManager.getChildCount();
+                mTotalItemCount = mGridLayoutManager.getItemCount();
+                mLastVisibleItem = mGridLayoutManager.findLastVisibleItemPosition();
+                mFirstVisibleItem = mGridLayoutManager.findFirstVisibleItemPosition();
+                if ((dy > 0 || dy < 0) && !mLoading && (mLastVisibleItem >= mItems.size() - 1)) {
+                    Log.d(TAG, "Fetching more items");
+                    mLoading = true;
+                    mCurrentPage++;
+                    new FetchItemTask().execute();
+                    mRecyclerView.getAdapter().notifyDataSetChanged();
+                }
+            }
+        });
+        updateSubtitle();
         setupAdapter();
         return v;
+    }
+
+    private void updateSubtitle() {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        try {
+            activity.getSupportActionBar().setSubtitle("text");
+        } catch (NullPointerException npe) {
+            Toast.makeText(getActivity(), "wtf!", Toast.LENGTH_SHORT);
+        }
     }
 
     private void setupAdapter() {
@@ -87,13 +121,15 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
-            return new FlickrFetchr().fetchItems();
+            return new FlickrFetchr().fetchItems(mCurrentPage);
         }
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItems = galleryItems;
-            setupAdapter();
+            mItems.addAll(galleryItems);
+            mLoading = false;
+//            setupAdapter();
+            mRecyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 
