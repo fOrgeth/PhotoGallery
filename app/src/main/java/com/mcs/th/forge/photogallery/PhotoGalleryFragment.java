@@ -28,6 +28,8 @@ public class PhotoGalleryFragment extends Fragment {
     private boolean mLoading = true;
     private int mCurrentPage = 1;
 
+    private int mLastVisibleItem, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
+
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
     }
@@ -58,15 +60,15 @@ public class PhotoGalleryFragment extends Fragment {
             }
         });
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            private int lastVisibleItems, visibleItemCount, totalItemCount;
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                visibleItemCount = mGridLayoutManager.getChildCount();
-                totalItemCount = mGridLayoutManager.getItemCount();
-                lastVisibleItems = mGridLayoutManager.findLastVisibleItemPosition();
-                if ((dy > 0 || dy < 0) && !mLoading && (lastVisibleItems >= mItems.size() - 1)) {
+                mVisibleItemCount = mGridLayoutManager.getChildCount();
+                mTotalItemCount = mGridLayoutManager.getItemCount();
+                mLastVisibleItem = mGridLayoutManager.findLastVisibleItemPosition();
+                mFirstVisibleItem = mGridLayoutManager.findFirstVisibleItemPosition();
+                if ((dy > 0 || dy < 0) && !mLoading && (mLastVisibleItem >= mItems.size() - 1)) {
                     Log.d(TAG, "Fetching more items");
                     mLoading = true;
                     mCurrentPage++;
@@ -106,7 +108,8 @@ public class PhotoGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             mItems.addAll(galleryItems);
             mLoading = false;
-            setupAdapter();
+//            setupAdapter();
+            mRecyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 
