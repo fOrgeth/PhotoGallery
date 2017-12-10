@@ -37,7 +37,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         mResponseHandler = responseHandler;
 
         final int maxMemory = (int) Runtime.getRuntime().maxMemory() / 1024;
-        final int cacheSize = maxMemory / 8;
+        final int cacheSize = maxMemory / 3;
 
         mImageCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override

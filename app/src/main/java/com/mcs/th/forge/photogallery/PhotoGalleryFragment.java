@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mcs.th.forge.photogallery.ThumbnailDownloader.ThumbnailDownloadListener;
+import com.squareup.picasso.LruCache;
+import com.squareup.picasso.Picasso;
 
 public class PhotoGalleryFragment extends Fragment {
 
@@ -34,9 +36,11 @@ public class PhotoGalleryFragment extends Fragment {
     private boolean mLoading = true;
     private int mCurrentPage = 1;
 
-    private int mLastVisibleItem, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
+    private int mLastVisibleItem, mListTreshold = 5, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
     private Handler mHandler;
+
+    Picasso mPicasso;
 
     private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
@@ -62,6 +66,9 @@ public class PhotoGalleryFragment extends Fragment {
                 }
         );
         mHandler = new Handler();
+        mPicasso = new Picasso.Builder(getActivity())
+                .memoryCache(new LruCache(24000))
+                .build();
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
@@ -94,17 +101,18 @@ public class PhotoGalleryFragment extends Fragment {
                 mTotalItemCount = mGridLayoutManager.getItemCount();
                 mLastVisibleItem = mGridLayoutManager.findLastVisibleItemPosition();
                 mFirstVisibleItem = mGridLayoutManager.findFirstVisibleItemPosition();
-                if ((dy > 0 || dy < 0) && !mLoading && (mLastVisibleItem >= mItems.size() - 1)) {
+                if (dy > 0 && !mLoading &&
+                        (mLastVisibleItem + mListTreshold >= mItems.size() - 1)) {
                     Log.d(TAG, "Fetching more items");
                     mLoading = true;
                     mCurrentPage++;
                     new FetchItemTask().execute();
-                    /*mHandler.post(new Runnable() {
+                    mHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             mRecyclerView.getAdapter().notifyItemInserted(mItems.size());
                         }
-                    });*/
+                    });
 
 //                    mRecyclerView.getAdapter().notifyDataSetChanged();
 
@@ -171,6 +179,13 @@ public class PhotoGalleryFragment extends Fragment {
         public void bindDrawable(Drawable drawable) {
             mItemImageView.setImageDrawable(drawable);
         }
+
+        /*public void bindGalleryItem(GalleryItem item) {
+            mPicasso.with(getActivity())
+                    .load(item.getUrl())
+                    .placeholder(R.drawable.bill_up_close)
+                    .into(mItemImageView);
+        }*/
     }
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
@@ -194,6 +209,7 @@ public class PhotoGalleryFragment extends Fragment {
             Drawable placeHolder = getResources().getDrawable(R.drawable.bill_up_close);
             photoHolder.bindDrawable(placeHolder);
             mThumbnailDownloader.queueThumbnail(photoHolder, galleryItem.getUrl());
+//            photoHolder.bindGalleryItem(galleryItem);
         }
 
         @Override
