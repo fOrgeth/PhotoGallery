@@ -11,9 +11,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -36,7 +40,7 @@ public class PhotoGalleryFragment extends Fragment {
     private boolean mLoading = true;
     private int mCurrentPage = 1;
 
-    private int mLastVisibleItem, mListTreshold = 5, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
+    private int mLastVisibleItem, mListTreshold = 12, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
     private Handler mHandler;
 
@@ -49,10 +53,61 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_clear:
+                QueryPreferences.setStoredQuery(getActivity(), null);
+                updateItems();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
+        super.onCreateOptionsMenu(menu, menuInflater);
+        menuInflater.inflate(R.menu.fragment_photo_gallery, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                Log.d(TAG, "QueryTextSubmin: " + s);
+                QueryPreferences.setStoredQuery(getActivity(), s);
+                updateItems();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                Log.d(TAG, "QueryTextChange: " + s);
+                return false;
+            }
+        });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferences.getStoredQuery(getActivity());
+                searchView.setQuery(query, false);
+            }
+        });
+    }
+
+    private void updateItems() {
+        String query = QueryPreferences.getStoredQuery(getActivity());
+        new FetchItemTask(query).execute();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        new FetchItemTask().execute();
+        setHasOptionsMenu(true);
+        updateItems();
 
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
@@ -65,10 +120,10 @@ public class PhotoGalleryFragment extends Fragment {
                     }
                 }
         );
-        mHandler = new Handler();
-        mPicasso = new Picasso.Builder(getActivity())
+//        mHandler = new Handler();
+        /*mPicasso = new Picasso.Builder(getActivity())
                 .memoryCache(new LruCache(24000))
-                .build();
+                .build();*/
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
@@ -106,16 +161,14 @@ public class PhotoGalleryFragment extends Fragment {
                     Log.d(TAG, "Fetching more items");
                     mLoading = true;
                     mCurrentPage++;
-                    new FetchItemTask().execute();
-                    mHandler.post(new Runnable() {
+                    updateItems();
+                    /*mHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             mRecyclerView.getAdapter().notifyItemInserted(mItems.size());
                         }
-                    });
-
-//                    mRecyclerView.getAdapter().notifyDataSetChanged();
-
+                    });*/
+                    mRecyclerView.getAdapter().notifyDataSetChanged();
                 }
             }
         });
@@ -140,15 +193,19 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private class FetchItemTask extends AsyncTask<Void, Void, List<GalleryItem>> {
+        private String mQuery;
+
+        public FetchItemTask(String query) {
+            mQuery = query;
+        }
 
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
 //            return new FlickrFetchr().fetchItems(mCurrentPage);
-            String query = "robot";
-            if (query == null) {
+            if (mQuery == null) {
                 return new FlickrFetchr().fetchRecentPhotos(mCurrentPage);
             } else {
-                return new FlickrFetchr().searchPhotos(query);
+                return new FlickrFetchr().searchPhotos(mQuery);
             }
         }
 
