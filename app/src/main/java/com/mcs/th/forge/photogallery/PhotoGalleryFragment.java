@@ -23,6 +23,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mcs.th.forge.photogallery.ThumbnailDownloader.ThumbnailDownloadListener;
+
 public class PhotoGalleryFragment extends Fragment {
 
     private static final String TAG = "PhotoGalleryFragment";
@@ -51,7 +53,7 @@ public class PhotoGalleryFragment extends Fragment {
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
         mThumbnailDownloader.setThumbnailDownloadListener(
-                new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
+                new ThumbnailDownloadListener<PhotoHolder>() {
                     @Override
                     public void onThumbnailDownloaded(PhotoHolder photoHolder, Bitmap bitmap) {
                         Drawable drawable = new BitmapDrawable(getResources(), bitmap);
