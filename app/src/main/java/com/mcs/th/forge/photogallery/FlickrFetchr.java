@@ -65,11 +65,19 @@ public class FlickrFetchr {
     private String buildUrl(String method, String query, Integer page) {
         Uri.Builder uriBuilder = ENDPOINT.buildUpon()
                 .appendQueryParameter("method", method);
-        if (method.equals(SEARCH_METHOD)) {
+        switch (method) {
+            case SEARCH_METHOD:
+                uriBuilder.appendQueryParameter("text", query);
+                break;
+            case FETCH_RECENTS_METHOD:
+                uriBuilder.appendQueryParameter("page", String.valueOf(page));
+                break;
+        }
+        /*if (method.equals(SEARCH_METHOD)) {
             uriBuilder.appendQueryParameter("text", query);
         } else if (method.equals(FETCH_RECENTS_METHOD)) {
             uriBuilder.appendQueryParameter("page", String.valueOf(page));
-        }
+        }*/
         return uriBuilder.build().toString();
     }
 

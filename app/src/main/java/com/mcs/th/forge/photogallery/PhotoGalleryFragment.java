@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -65,11 +66,11 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
+    public void onCreateOptionsMenu(final Menu menu, MenuInflater menuInflater) {
         super.onCreateOptionsMenu(menu, menuInflater);
         menuInflater.inflate(R.menu.fragment_photo_gallery, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -77,6 +78,7 @@ public class PhotoGalleryFragment extends Fragment {
             public boolean onQueryTextSubmit(String s) {
                 Log.d(TAG, "QueryTextSubmit: " + s);
                 QueryPreferences.setStoredQuery(getActivity(), s);
+                searchView.onActionViewCollapsed();
                 updateItems();
                 return true;
             }
@@ -87,6 +89,7 @@ public class PhotoGalleryFragment extends Fragment {
                 return false;
             }
         });
+
 
         searchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
@@ -213,14 +216,12 @@ public class PhotoGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             if (mQuery == null) {
                 mItems.addAll(galleryItems);
-                setupAdapter();
+                mRecyclerView.getAdapter().notifyDataSetChanged();
             } else {
                 mItems = galleryItems;
                 setupAdapter();
             }
             mLoading = false;
-//            setupAdapter();
-            mRecyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 
