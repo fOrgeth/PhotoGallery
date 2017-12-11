@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mcs.th.forge.photogallery.ThumbnailDownloader.ThumbnailDownloadListener;
-import com.squareup.picasso.LruCache;
 import com.squareup.picasso.Picasso;
 
 public class PhotoGalleryFragment extends Fragment {
@@ -40,7 +39,7 @@ public class PhotoGalleryFragment extends Fragment {
     private boolean mLoading = true;
     private int mCurrentPage = 1;
 
-    private int mLastVisibleItem, mListTreshold = 12, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
+    private int mLastVisibleItem, mListThresholds = 12, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
     private Handler mHandler;
 
@@ -75,7 +74,7 @@ public class PhotoGalleryFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                Log.d(TAG, "QueryTextSubmin: " + s);
+                Log.d(TAG, "QueryTextSubmit: " + s);
                 QueryPreferences.setStoredQuery(getActivity(), s);
                 updateItems();
                 return true;
@@ -95,11 +94,6 @@ public class PhotoGalleryFragment extends Fragment {
                 searchView.setQuery(query, false);
             }
         });
-    }
-
-    private void updateItems() {
-        String query = QueryPreferences.getStoredQuery(getActivity());
-        new FetchItemTask(query).execute();
     }
 
     @Override
@@ -157,7 +151,7 @@ public class PhotoGalleryFragment extends Fragment {
                 mLastVisibleItem = mGridLayoutManager.findLastVisibleItemPosition();
                 mFirstVisibleItem = mGridLayoutManager.findFirstVisibleItemPosition();
                 if (dy > 0 && !mLoading &&
-                        (mLastVisibleItem + mListTreshold >= mItems.size() - 1)) {
+                        (mLastVisibleItem + mListThresholds >= mItems.size() - 1)) {
                     Log.d(TAG, "Fetching more items");
                     mLoading = true;
                     mCurrentPage++;
@@ -168,7 +162,7 @@ public class PhotoGalleryFragment extends Fragment {
                             mRecyclerView.getAdapter().notifyItemInserted(mItems.size());
                         }
                     });*/
-                    mRecyclerView.getAdapter().notifyDataSetChanged();
+//                    mRecyclerView.getAdapter().notifyDataSetChanged();
                 }
             }
         });
@@ -184,6 +178,11 @@ public class PhotoGalleryFragment extends Fragment {
         } catch (NullPointerException npe) {
             Toast.makeText(getActivity(), "wtf!", Toast.LENGTH_SHORT);
         }
+    }
+
+    private void updateItems() {
+        String query = QueryPreferences.getStoredQuery(getActivity());
+        new FetchItemTask(query).execute();
     }
 
     private void setupAdapter() {
@@ -211,27 +210,21 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItems.addAll(galleryItems);
+            if (mQuery == null) {
+                mItems.addAll(galleryItems);
+                setupAdapter();
+            } else {
+                mItems = galleryItems;
+                setupAdapter();
+            }
             mLoading = false;
 //            setupAdapter();
             mRecyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mThumbnailDownloader.quit();
-        Log.i(TAG, "Background thread destroyed");
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mThumbnailDownloader.clearQueue();
-    }
-
     private class PhotoHolder extends RecyclerView.ViewHolder {
+
         private ImageView mItemImageView;
 
         public PhotoHolder(View itemView) {
@@ -249,15 +242,16 @@ public class PhotoGalleryFragment extends Fragment {
                     .placeholder(R.drawable.bill_up_close)
                     .into(mItemImageView);
         }*/
+
     }
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
+
         private List<GalleryItem> mGalleryItems;
 
         public PhotoAdapter(List<GalleryItem> galleryItems) {
             mGalleryItems = galleryItems;
         }
-
 
         @Override
         public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -265,6 +259,7 @@ public class PhotoGalleryFragment extends Fragment {
             View view = inflater.inflate(R.layout.gallery_item, parent, false);
             return new PhotoHolder(view);
         }
+
 
         @Override
         public void onBindViewHolder(PhotoHolder photoHolder, int position) {
@@ -279,6 +274,20 @@ public class PhotoGalleryFragment extends Fragment {
         public int getItemCount() {
             return mGalleryItems.size();
         }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mThumbnailDownloader.quit();
+        Log.i(TAG, "Background thread destroyed");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mThumbnailDownloader.clearQueue();
     }
 }
 
