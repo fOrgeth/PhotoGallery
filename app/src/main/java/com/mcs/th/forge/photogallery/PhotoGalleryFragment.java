@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class PhotoGalleryFragment extends Fragment {
     private GridLayoutManager mGridLayoutManager;
     private boolean mLoading = true;
     private int mCurrentPage = 1;
+    private ProgressBar mProgressBar;
 
     private int mLastVisibleItem, mListThresholds = 12, mVisibleItemCount, mTotalItemCount, mFirstVisibleItem;
 
@@ -77,6 +79,8 @@ public class PhotoGalleryFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String s) {
                 Log.d(TAG, "QueryTextSubmit: " + s);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mRecyclerView.setVisibility(View.GONE);
                 QueryPreferences.setStoredQuery(getActivity(), s);
                 searchView.onActionViewCollapsed();
                 updateItems();
@@ -105,7 +109,6 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        updateItems();
 
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
@@ -146,7 +149,6 @@ public class PhotoGalleryFragment extends Fragment {
             }
         });
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
@@ -170,6 +172,9 @@ public class PhotoGalleryFragment extends Fragment {
                 }
             }
         });
+        mProgressBar = v.findViewById(R.id.loading_in_progress);
+        mProgressBar.setVisibility(View.GONE);
+        updateItems();
         updateSubtitle();
         setupAdapter();
         return v;
@@ -203,6 +208,14 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if(mItems.size()==0){
+                mProgressBar.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
 //            return new FlickrFetchr().fetchItems(mCurrentPage);
             if (mQuery == null) {
@@ -221,6 +234,8 @@ public class PhotoGalleryFragment extends Fragment {
                 mItems = galleryItems;
                 setupAdapter();
             }
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(View.GONE);
             mLoading = false;
         }
     }
