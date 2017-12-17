@@ -48,9 +48,9 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     public void addBitmapToImageCache(String key, Bitmap bitmap) {
-//        if (getBitmapFromImageCache(key) == null) {
+        if (getBitmapFromImageCache(key) == null) {
             mImageCache.put(key, bitmap);
-//        }
+        }
     }
 
     public Bitmap getBitmapFromImageCache(String key) {
