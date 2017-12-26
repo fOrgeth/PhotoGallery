@@ -1,10 +1,15 @@
 package com.mcs.th.forge.photogallery;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -36,6 +41,8 @@ import com.squareup.picasso.Picasso;
 public class PhotoGalleryFragment extends Fragment {
 
     private static final String TAG = "PhotoGalleryFragment";
+    private static final int JOB_ID = 1;
+
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
     private GridLayoutManager mGridLayoutManager;
@@ -140,8 +147,25 @@ public class PhotoGalleryFragment extends Fragment {
                 updateItems();
                 return true;
             case R.id.menu_item_toggle_polling:
-                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
-                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    Log.d(TAG, "LOLLIPOP");
+                    ComponentName serviceName = new ComponentName(getActivity(), PollJobService.class);
+                    JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
+                            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                            .setPeriodic(1000 * 60)
+                            .setPersisted(true)
+                            .build();
+                    JobScheduler scheduler = (JobScheduler) getContext()
+                            .getSystemService(Context.JOB_SCHEDULER_SERVICE);
+                    int result = scheduler.schedule(jobInfo);
+                    if (result == JobScheduler.RESULT_SUCCESS) {
+                        Log.d(TAG, "SERVICE SCHEDULED");
+                    }
+                } else {
+                    Log.d(TAG,"NOT LOLLIPOP");
+                    boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                    PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                }
                 getActivity().invalidateOptionsMenu();
                 return true;
             default:
