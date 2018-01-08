@@ -20,9 +20,11 @@ import java.util.concurrent.TimeUnit;
 public class PollService extends IntentService {
     private static final String TAG = "PollService";
     private static final String CHANNEL_ID = "myChannel";
-
     // 60 seconds
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
+
+    public static final String ACTION_SHOW_NOTIFICATION = "com.mcs.th.forge.photogallery.SHOW_NOTIFICATION";
+    public static final String PERM_PRIVATE = "com.mcs.th.forge.photogallery.PRIVATE";
 
     private static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
@@ -43,6 +45,8 @@ public class PollService extends IntentService {
             alarmManager.cancel(pi);
             pi.cancel();
         }
+
+        QueryPreferences.setAlarmOn(context, isOn);
     }
 
     public static boolean isServiceAlarmOn(Context context) {
@@ -93,6 +97,8 @@ public class PollService extends IntentService {
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
             notificationManager.notify(0, notification);
+
+            sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE);
         }
 
         QueryPreferences.setLastResultId(this, resultId);
