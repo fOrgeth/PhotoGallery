@@ -1,4 +1,4 @@
-package com.mcs.th.forge.photogallery;
+package com.mcs.th.forge.photogallery.service;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -14,43 +14,20 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import com.mcs.th.forge.photogallery.FlickrFetchr;
+import com.mcs.th.forge.photogallery.GalleryItem;
+import com.mcs.th.forge.photogallery.PhotoGalleryActivity;
+import com.mcs.th.forge.photogallery.QueryPreferences;
+import com.mcs.th.forge.photogallery.R;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class PollService extends IntentService {
+public class PollService extends IntentService{
     private static final String TAG = "PollService";
     private static final String CHANNEL_ID = "myChannel";
-
-    // 60 seconds
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
 
-    private static Intent newIntent(Context context) {
-        return new Intent(context, PollService.class);
-    }
-
-    public static void setServiceAlarm(Context context, boolean isOn) {
-        Intent i = PollService.newIntent(context);
-        PendingIntent pi = PendingIntent.getService(context,
-                0, i, 0);
-
-        AlarmManager alarmManager = (AlarmManager)
-                context.getSystemService(Context.ALARM_SERVICE);
-
-        if (isOn) {
-            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME,
-                    SystemClock.elapsedRealtime(), POLL_INTERVAL_MS, pi);
-        } else {
-            alarmManager.cancel(pi);
-            pi.cancel();
-        }
-    }
-
-    public static boolean isServiceAlarmOn(Context context) {
-        Intent i = PollService.newIntent(context);
-        PendingIntent pi = PendingIntent
-                .getService(context, 0, i, PendingIntent.FLAG_NO_CREATE);
-        return pi != null;
-    }
 
     public PollService() {
         super(TAG);
@@ -97,6 +74,34 @@ public class PollService extends IntentService {
 
         QueryPreferences.setLastResultId(this, resultId);
     }
+
+    public static Intent newIntent(Context context) {
+        return new Intent(context, PollService.class);
+    }
+
+    public static void setServiceAlarm(Context context, boolean isOn) {
+        Intent i = newIntent(context);
+        PendingIntent pi = PendingIntent.getService(context,
+                0, i, 0);
+
+        AlarmManager alarmManager = (AlarmManager)
+                context.getSystemService(Context.ALARM_SERVICE);
+
+        if (isOn) {
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime(), POLL_INTERVAL_MS, pi);
+        } else {
+            alarmManager.cancel(pi);
+            pi.cancel();
+        }
+    }
+
+    /*public boolean isServiceAlarmOn(Context context) {
+        Intent i = PollService.newIntent(context);
+        PendingIntent pi = PendingIntent
+                .getService(context, 0, i, PendingIntent.FLAG_NO_CREATE);
+        return pi != null;
+    }*/
 
     private boolean isNetworkAvailableAndConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);

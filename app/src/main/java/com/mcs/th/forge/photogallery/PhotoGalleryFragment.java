@@ -4,7 +4,6 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -14,7 +13,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -36,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mcs.th.forge.photogallery.ThumbnailDownloader.ThumbnailDownloadListener;
+import com.mcs.th.forge.photogallery.service.PollServiceSelector;
 import com.squareup.picasso.Picasso;
 
 public class PhotoGalleryFragment extends Fragment {
@@ -147,25 +146,8 @@ public class PhotoGalleryFragment extends Fragment {
                 updateItems();
                 return true;
             case R.id.menu_item_toggle_polling:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Log.d(TAG, "LOLLIPOP");
-                    ComponentName serviceName = new ComponentName(getActivity(), PollJobService.class);
-                    JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
-                            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
-                            .setPeriodic(1000 * 60)
-                            .setPersisted(true)
-                            .build();
-                    JobScheduler scheduler = (JobScheduler) getContext()
-                            .getSystemService(Context.JOB_SCHEDULER_SERVICE);
-                    int result = scheduler.schedule(jobInfo);
-                    if (result == JobScheduler.RESULT_SUCCESS) {
-                        Log.d(TAG, "SERVICE SCHEDULED");
-                    }
-                } else {
-                    Log.d(TAG,"NOT LOLLIPOP");
-                    boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
-                    PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
-                }
+                boolean shouldStartAlarm = !PollServiceSelector.isServiceAlarmOn(getActivity());
+                PollServiceSelector.startService(getActivity(), shouldStartAlarm);
                 getActivity().invalidateOptionsMenu();
                 return true;
             default:
@@ -209,7 +191,7 @@ public class PhotoGalleryFragment extends Fragment {
         });
 
         MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
-        if (PollService.isServiceAlarmOn(getActivity())) {
+        if (PollServiceSelector.isServiceAlarmOn(getActivity())) {
             toggleItem.setTitle(R.string.stop_polling);
         } else {
             toggleItem.setTitle(R.string.start_polling);
