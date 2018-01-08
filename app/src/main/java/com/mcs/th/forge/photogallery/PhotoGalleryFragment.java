@@ -1,9 +1,15 @@
 package com.mcs.th.forge.photogallery;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -35,6 +41,8 @@ import com.squareup.picasso.Picasso;
 public class PhotoGalleryFragment extends Fragment {
 
     private static final String TAG = "PhotoGalleryFragment";
+    private static final int JOB_ID = 1;
+
     private RecyclerView mRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
     private GridLayoutManager mGridLayoutManager;
@@ -52,56 +60,6 @@ public class PhotoGalleryFragment extends Fragment {
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_item_clear:
-                QueryPreferences.setStoredQuery(getActivity(), null);
-                mItems.clear();
-                updateItems();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onCreateOptionsMenu(final Menu menu, MenuInflater menuInflater) {
-        super.onCreateOptionsMenu(menu, menuInflater);
-        menuInflater.inflate(R.menu.fragment_photo_gallery, menu);
-
-        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
-        final SearchView searchView = (SearchView) searchItem.getActionView();
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                Log.d(TAG, "QueryTextSubmit: " + s);
-                mProgressBar.setVisibility(View.VISIBLE);
-                mRecyclerView.setVisibility(View.GONE);
-                QueryPreferences.setStoredQuery(getActivity(), s);
-                searchView.onActionViewCollapsed();
-                updateItems();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                Log.d(TAG, "QueryTextChange: " + s);
-                return false;
-            }
-        });
-
-
-        searchView.setOnSearchClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String query = QueryPreferences.getStoredQuery(getActivity());
-                searchView.setQuery(query, false);
-            }
-        });
     }
 
     @Override
@@ -180,6 +138,67 @@ public class PhotoGalleryFragment extends Fragment {
         return v;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_clear:
+                QueryPreferences.setStoredQuery(getActivity(), null);
+                mItems.clear();
+                updateItems();
+                return true;
+            case R.id.menu_item_toggle_polling:
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(final Menu menu, MenuInflater menuInflater) {
+        super.onCreateOptionsMenu(menu, menuInflater);
+        menuInflater.inflate(R.menu.fragment_photo_gallery, menu);
+
+        final MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                Log.d(TAG, "QueryTextSubmit: " + s);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mRecyclerView.setVisibility(View.GONE);
+                QueryPreferences.setStoredQuery(getActivity(), s);
+                searchView.onActionViewCollapsed();
+                updateItems();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                Log.d(TAG, "QueryTextChange: " + s);
+                return false;
+            }
+        });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferences.getStoredQuery(getActivity());
+                searchView.setQuery(query, false);
+            }
+        });
+
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if (PollService.isServiceAlarmOn(getActivity())) {
+            toggleItem.setTitle(R.string.stop_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
+    }
+
     private void updateSubtitle() {
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         try {
@@ -210,7 +229,7 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if(mItems.size()==0){
+            if (mItems.size() == 0) {
                 mProgressBar.setVisibility(View.VISIBLE);
             }
         }
