@@ -147,25 +147,8 @@ public class PhotoGalleryFragment extends Fragment {
                 updateItems();
                 return true;
             case R.id.menu_item_toggle_polling:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Log.d(TAG, "LOLLIPOP");
-                    ComponentName serviceName = new ComponentName(getActivity(), PollJobService.class);
-                    JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
-                            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
-                            .setPeriodic(1000 * 60)
-                            .setPersisted(true)
-                            .build();
-                    JobScheduler scheduler = (JobScheduler) getContext()
-                            .getSystemService(Context.JOB_SCHEDULER_SERVICE);
-                    int result = scheduler.schedule(jobInfo);
-                    if (result == JobScheduler.RESULT_SUCCESS) {
-                        Log.d(TAG, "SERVICE SCHEDULED");
-                    }
-                } else {
-                    Log.d(TAG,"NOT LOLLIPOP");
-                    boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
-                    PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
-                }
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
                 getActivity().invalidateOptionsMenu();
                 return true;
             default:
