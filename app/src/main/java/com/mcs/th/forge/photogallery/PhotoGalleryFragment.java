@@ -86,6 +86,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
+        Log.d(TAG,"onCreate" + getActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG,"onResume "+getActivity());
     }
 
     @Nullable
@@ -318,6 +325,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         super.onDestroy();
         mThumbnailDownloader.quit();
         Log.i(TAG, "Background thread destroyed");
+        Log.d(TAG,"onDestroy" + getActivity());
     }
 
     @Override
