@@ -1,6 +1,7 @@
 package com.mcs.th.forge.photogallery;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -34,10 +36,7 @@ public class PhotoPageFragment extends VisibleFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mUri = getArguments().getParcelable(ARG_URI);
-        if (mUri != null) {
-            String scheme = mUri.getScheme();
-            Log.d(TAG,"URI Scheme: "+scheme);
-        }
+
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -67,17 +66,29 @@ public class PhotoPageFragment extends VisibleFragment {
                 AppCompatActivity activity = (AppCompatActivity) getActivity();
                 activity.getSupportActionBar().setSubtitle(title);
             }
+
         });
-        mWebView.setWebViewClient(new WebViewClient());
+        mWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (!(url.startsWith("http") || url.startsWith("https"))) {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(i);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
         mWebView.loadUrl(mUri.toString());
         return v;
     }
 
-    public void webViewGoBack(){
+    public void webViewGoBack() {
         mWebView.goBack();
     }
 
-    public boolean webViewCanGoBack(){
+    public boolean webViewCanGoBack() {
         return mWebView.canGoBack();
     }
 }
