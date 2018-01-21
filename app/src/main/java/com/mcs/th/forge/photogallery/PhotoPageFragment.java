@@ -1,10 +1,13 @@
 package com.mcs.th.forge.photogallery;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -79,6 +82,23 @@ public class PhotoPageFragment extends VisibleFragment {
                     return false;
                 }
             }
+
+            /*@Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    uri = request.getUrl();
+                }
+                Log.d(TAG, "URL LOADING, URI: " + uri.toString());
+                if (!(uri.getScheme().equalsIgnoreCase("http") ||
+                        uri.getScheme().equalsIgnoreCase("https"))) {
+                    Intent i = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(i);
+                    return true;
+                } else {
+                    return false;
+                }
+            }*/
         });
         mWebView.loadUrl(mUri.toString());
         return v;
