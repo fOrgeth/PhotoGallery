@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ProgressBar;
 
 public class PhotoPageFragment extends VisibleFragment {
     private static final String ARG_URI = "photo_page_url";
+    private static final String TAG = "PhotoPageFragment";
 
     private Uri mUri;
     private WebView mWebView;
@@ -32,6 +34,10 @@ public class PhotoPageFragment extends VisibleFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mUri = getArguments().getParcelable(ARG_URI);
+        if (mUri != null) {
+            String scheme = mUri.getScheme();
+            Log.d(TAG,"URI Scheme: "+scheme);
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -55,6 +61,7 @@ public class PhotoPageFragment extends VisibleFragment {
                     mProgressBar.setProgress(newProgress);
                 }
             }
+
             @Override
             public void onReceivedTitle(WebView view, String title) {
                 AppCompatActivity activity = (AppCompatActivity) getActivity();
@@ -64,5 +71,13 @@ public class PhotoPageFragment extends VisibleFragment {
         mWebView.setWebViewClient(new WebViewClient());
         mWebView.loadUrl(mUri.toString());
         return v;
+    }
+
+    public void webViewGoBack(){
+        mWebView.goBack();
+    }
+
+    public boolean webViewCanGoBack(){
+        return mWebView.canGoBack();
     }
 }
