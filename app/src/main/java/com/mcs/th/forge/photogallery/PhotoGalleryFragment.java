@@ -38,7 +38,7 @@ import java.util.List;
 import com.mcs.th.forge.photogallery.ThumbnailDownloader.ThumbnailDownloadListener;
 import com.squareup.picasso.Picasso;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final String TAG = "PhotoGalleryFragment";
     private static final int JOB_ID = 1;
