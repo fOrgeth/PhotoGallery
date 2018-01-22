@@ -22,7 +22,7 @@ public class PollService extends IntentService {
     private static final String TAG = "PollService";
     private static final String CHANNEL_ID = "myChannel";
     // 60 seconds
-    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(15);
 
     public static final String ACTION_SHOW_NOTIFICATION = "com.mcs.th.forge.photogallery.SHOW_NOTIFICATION";
     public static final String PERM_PRIVATE = "com.mcs.th.forge.photogallery.PRIVATE";

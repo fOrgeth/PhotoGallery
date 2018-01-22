@@ -74,6 +74,9 @@ public class PhotoPageFragment extends VisibleFragment {
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Uri uri = null;
+                Log.d(TAG, "NULL URL: " + uri);
+                Log.d(TAG, "OverrideUrlLoading URL: " + url.toString());
                 if (!(url.startsWith("http") || url.startsWith("https"))) {
                     Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     startActivity(i);
@@ -86,10 +89,11 @@ public class PhotoPageFragment extends VisibleFragment {
             /*@Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = null;
+                Log.d(TAG,"A7 NULL URL: "+uri);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     uri = request.getUrl();
                 }
-                Log.d(TAG, "URL LOADING, URI: " + uri.toString());
+                Log.d(TAG, "A7 URL LOADING, URI: " + uri.toString());
                 if (!(uri.getScheme().equalsIgnoreCase("http") ||
                         uri.getScheme().equalsIgnoreCase("https"))) {
                     Intent i = new Intent(Intent.ACTION_VIEW, uri);
