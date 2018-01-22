@@ -83,6 +83,7 @@ public class FlickrFetchr {
 
     public List<GalleryItem> fetchRecentPhotos(int page) {
         String url = buildUrl(FETCH_RECENTS_METHOD, null, page);
+        Log.d(TAG, "URL: "+url);
         return downloadGalleryItems(url);
     }
 

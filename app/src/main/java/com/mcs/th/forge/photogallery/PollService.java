@@ -1,5 +1,6 @@
 package com.mcs.th.forge.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -25,6 +26,8 @@ public class PollService extends IntentService {
 
     public static final String ACTION_SHOW_NOTIFICATION = "com.mcs.th.forge.photogallery.SHOW_NOTIFICATION";
     public static final String PERM_PRIVATE = "com.mcs.th.forge.photogallery.PRIVATE";
+    public static final String REQUEST_CODE = "REQUEST_CODE";
+    public static final String NOTIFICATION = "NOTIFICATION";
 
     private static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
@@ -95,10 +98,7 @@ public class PollService extends IntentService {
                     .setAutoCancel(true)
                     .build();
 
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            notificationManager.notify(0, notification);
-
-            sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE);
+            showBackgroundNotification(0, notification);
         }
 
         QueryPreferences.setLastResultId(this, resultId);
@@ -109,5 +109,14 @@ public class PollService extends IntentService {
         boolean isNetworkAvailable = cm.getActiveNetworkInfo() != null;
         boolean isNetworkConnected = isNetworkAvailable && cm.getActiveNetworkInfo().isConnected();
         return isNetworkConnected;
+    }
+
+    private void showBackgroundNotification(int requestCode, Notification notification) {
+        Intent i = new Intent(ACTION_SHOW_NOTIFICATION);
+        i.putExtra(REQUEST_CODE, requestCode);
+        i.putExtra(NOTIFICATION, notification);
+        sendOrderedBroadcast(i, PERM_PRIVATE, null,
+                null, Activity.RESULT_OK,
+                null, null);
     }
 }

@@ -1,5 +1,7 @@
 package com.mcs.th.forge.photogallery;
 
+import android.net.Uri;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -16,6 +18,10 @@ public class GalleryItem {
     @SerializedName("url_s")
     @Expose
     private String mUrl;
+
+    @SerializedName("owner")
+    @Expose
+    private String mOwner;
 
     public String getCaption() {
         return mCaption;
@@ -39,6 +45,22 @@ public class GalleryItem {
 
     public void setUrl(String url) {
         mUrl = url;
+    }
+
+    public String getOwner() {
+        return mOwner;
+    }
+
+    public void setOwner(String owner) {
+        mOwner = owner;
+    }
+
+    public Uri getPhotoPageUri() {
+        return Uri.parse("https://www.flickr.com/photos/")
+                .buildUpon()
+                .appendPath(mOwner)
+                .appendPath(mId)
+                .build();
     }
 
     @Override
